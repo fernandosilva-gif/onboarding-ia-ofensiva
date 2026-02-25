@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__mcp-registry__search_mcp_registry",
+      "Bash(python -c:*)",
+      "Bash(py:*)",
+      "Bash(python3:*)",
+      "Bash(where:*)",
+      "Bash(Get-Command python*)",
+      "Bash(cmd /c \"python --version\")",
+      "Bash(cmd /c \"python --version 2>&1 && echo FOUND\")",
+      "Bash(cmd /c \"where yt-dlp 2>&1\")",
+      "Bash(cmd /c \"node --version 2>&1 && npm --version 2>&1\")",
+      "Bash(powershell:*)",
+      "Bash(node:*)",
+      "Bash(yt-dlp:*)",
+      "Bash(curl:*)",
+      "Bash(npx --yes get-youtube-transcript:*)",
+      "Bash(npx --yes youtube-transcript-api)",
+      "Bash(npm install:*)",
+      "Bash(winget:*)",
+      "Bash(choco --version:*)",
+      "Bash(\"/c/Users/Fernando Silva/AppData/Local/Microsoft/WinGet/Links/yt-dlp.exe\" --write-auto-sub --skip-download --sub-lang pt-BR --convert-subs srt --output \"subs_%\\(id\\)s\" \"https://www.youtube.com/watch?v=hjdCyu6tKxs\")",
+      "Bash(\"/c/Users/Fernando Silva/AppData/Local/Microsoft/WinGet/Links/yt-dlp.exe\" --list-subs \"https://www.youtube.com/watch?v=hjdCyu6tKxs\")",
+      "Bash(\"/c/Users/Fernando Silva/AppData/Local/Microsoft/WinGet/Links/deno.exe\" --version)",
+      "Bash(\"/c/Users/Fernando Silva/AppData/Local/Microsoft/WinGet/Links/yt-dlp.exe\" --write-auto-sub --skip-download --sub-lang pt --sub-format json3 --output \"subs_%\\(id\\)s\" --js-runtimes \"deno:/c/Users/Fernando Silva/AppData/Local/Microsoft/WinGet/Links/deno.exe\" \"https://www.youtube.com/watch?v=hjdCyu6tKxs\")",
+      "mcp__plugin_figma_figma__get_design_context",
+      "mcp__plugin_figma_figma__get_screenshot",
+      "mcp__claude_ai_Figma__get_design_context",
+      "Bash(claude mcp:*)",
+      "Bash(bun:*)",
+      "mcp__figma-remote-mcp__get_design_context",
+      "mcp__figma__get_design_context",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

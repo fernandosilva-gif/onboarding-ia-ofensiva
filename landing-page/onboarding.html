@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Onboarding — IA Ofensiva</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─ Reset ────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:              #000;
+      --surface:         #0d0d0d;
+      --card:            #202020;
+      --border:          rgba(255,255,255,0.08);
+      --border-md:       rgba(255,255,255,0.12);
+      --text-primary:    #f2f2f2;
+      --text-secondary:  #a4a4a4;
+      --text-muted:      #606060;
+      --atmos:           #77c5d5;
+      --atmos-dim:       rgba(119,197,213,0.12);
+      --btn-bg:          #f2f2f2;
+      --btn-text:        #000;
+      --radius-card:     12px;
+      --radius-btn:      100px;
+      --nav-h:           64px;
+    }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ─ App shell ────────────────────────────────── */
+    .app {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ─ Screens ──────────────────────────────────── */
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-y: auto;
+      overflow-x: hidden;
+      opacity: 0;
+      pointer-events: none;
+      /* transitions controlled via inline styles in JS */
+    }
+
+    .screen.is-active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ─ Navigation bar ───────────────────────────── */
+    .onb-nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      height: var(--nav-h);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      opacity: 0;
+      transform: translateY(-8px);
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .onb-nav.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: all;
+    }
+
+    .onb-nav__back {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--text-secondary);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .onb-nav__back:hover {
+      background: rgba(255,255,255,0.08);
+      color: var(--text-primary);
+      border-color: rgba(255,255,255,0.18);
+    }
+
+    .onb-nav__logo {
+      height: 26px;
+      display: block;
+      object-fit: contain;
+    }
+
+    .onb-nav__dots {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .onb-nav__dot {
+      height: 6px;
+      border-radius: 100px;
+      background: var(--text-muted);
+      transition: background 0.3s, width 0.3s;
+      width: 6px;
+    }
+
+    .onb-nav__dot.is-active {
+      background: var(--atmos);
+      width: 18px;
+    }
+
+    /* ─ Shared: Buttons ──────────────────────────── */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 28px;
+      height: 46px;
+      border-radius: var(--radius-btn);
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
+      transition: background 0.15s, transform 0.12s;
+    }
+    .btn-primary:hover { background: #fff; }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-primary:disabled {
+      background: #2a2a2a;
+      color: var(--text-muted);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ─ Shared: Badge chip ───────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 100px;
+      background: var(--atmos-dim);
+      border: 1px solid rgba(119,197,213,0.2);
+      color: var(--atmos);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ══════════════════════════════════════════════
+       TELA 1 — "Pronto para começar?"
+    ══════════════════════════════════════════════ */
+    #s1 {
+      justify-content: flex-end;
+    }
+
+    .s1__bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 20%;
+    }
+
+    .s1__gradient {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to top,
+        #000 0%,
+        rgba(0,0,0,0.85) 28%,
+        rgba(0,0,0,0.3) 60%,
+        transparent 100%
+      );
+    }
+
+    .s1__content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 520px;
+      padding: 0 36px 56px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .s1__logo {
+      height: 30px;
+      object-fit: contain;
+      margin-bottom: 36px;
+      opacity: 0.9;
+    }
+
+    .s1__eyebrow {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--atmos);
+      margin-bottom: 12px;
+    }
+
+    .s1__title {
+      font-size: clamp(32px, 5.5vw, 52px);
+      font-weight: 700;
+      letter-spacing: -0.035em;
+      line-height: 1.1;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+    }
+
+    .s1__subtitle {
+      font-size: 16px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      margin-bottom: 36px;
+      max-width: 360px;
+    }
+
+    /* ══════════════════════════════════════════════
+       TELA 2 — "Trilhas recomendadas"
+    ══════════════════════════════════════════════ */
+    #s2 {
+      padding-top: var(--nav-h);
+      justify-content: flex-start;
+    }
+
+    .s2__inner {
+      width: 100%;
+      max-width: 720px;
+      padding: 40px 24px 56px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 44px;
+    }
+
+    .s2__header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      text-align: center;
+    }
+
+    .s2__title {
+      font-size: clamp(24px, 4vw, 34px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+    }
+
+    .s2__subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      max-width: 380px;
+      line-height: 1.65;
+    }
+
+    /* Track cards row */
+    .s2__tracks {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .track-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+      width: 182px;
+    }
+
+    .track-card__visual {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 204 / 307;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border-md);
+      background: var(--card);
+    }
+
+    .track-card__img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.3s ease;
+    }
+
+    .track-card__visual:hover .track-card__img {
+      transform: scale(1.03);
+    }
+
+    .track-card__overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%);
+      display: flex;
+      align-items: flex-end;
+      padding: 10px;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .track-card__visual:hover .track-card__overlay { opacity: 1; }
+
+    .track-card__overlay-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    /* Swap button — bottom-right of card */
+    .track-card__swap {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      z-index: 2;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(20,20,20,0.7);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, transform 0.15s;
+    }
+    .track-card__swap:hover {
+      background: rgba(119,197,213,0.25);
+      border-color: var(--atmos);
+      transform: scale(1.1);
+    }
+    .track-card__swap:active { transform: scale(0.95); }
+
+    .track-card__name {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .s2__footer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .s2__note {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ══════════════════════════════════════════════
+       TELA FINAL — "Primeiro dia de Ofensiva"
+    ══════════════════════════════════════════════ */
+    #sf {
+      padding-top: var(--nav-h);
+      justify-content: flex-start;
+    }
+
+    .sf__inner {
+      width: 100%;
+      max-width: 560px;
+      padding: 48px 24px 64px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 48px;
+    }
+
+    .sf__header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+
+    .sf__title {
+      font-size: clamp(26px, 4.5vw, 38px);
+      font-weight: 700;
+      letter-spacing: -0.035em;
+      line-height: 1.12;
+    }
+
+    .sf__subtitle {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      max-width: 380px;
+    }
+
+    /* Day cards row */
+    .sf__days {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+    }
+
+    .day-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      padding: 18px 14px 22px;
+      /* entrance animation */
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .day-card.is-visible { opacity: 1; transform: translateY(0); }
+
+    .day-card--sm {
+      width: 100px;
+      opacity: 0;
+    }
+    .day-card--sm.is-visible { opacity: 0.42; }
+
+    .day-card--lg {
+      width: 140px;
+      border-color: var(--atmos);
+      background: rgba(119,197,213,0.06);
+      box-shadow: 0 0 0 1px rgba(119,197,213,0.15), 0 8px 32px rgba(119,197,213,0.08);
+    }
+
+    .day-card__icon { display: block; }
+    .day-card__icon--sm { width: 44px; }
+    .day-card__icon--lg { width: 60px; }
+
+    .day-card__day {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .day-card--lg .day-card__day { color: var(--atmos); }
+
+    .day-card__label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+
+    .day-card--lg .day-card__label { color: var(--text-primary); font-size: 13px; }
+
+    /* ══════════════════════════════════════════════
+       MODAL OVERLAY
+    ══════════════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0,0,0,0.78);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-overlay.is-open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ─ Modal ─────────────────────────────────────── */
+    .modal {
+      background: #1c1c1c;
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+      max-width: 880px;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.7);
+      transform: scale(0.96) translateY(12px);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal-overlay.is-open .modal {
+      transform: scale(1) translateY(0);
+    }
+
+    /* Modal header */
+    .modal__header { display: flex; flex-direction: column; gap: 8px; }
+    .modal__header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .modal__title {
+      font-size: 22px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: -0.01em;
+    }
+
+    .modal__close {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.05);
+      color: var(--text-secondary);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .modal__close:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.16); }
+    .modal__close svg { display: block; }
+
+    .modal__subtitle { font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
+    .modal__highlight {
+      color: var(--atmos);
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    /* Modal cards grid */
+    .modal__grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .modal__card {
+      aspect-ratio: 204 / 307;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #2a2a2a;
+      position: relative;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .modal__card img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      border-radius: 10px;
+      transition: transform 0.25s ease;
+    }
+
+    .modal__card.contain img { object-fit: contain; }
+
+    /* Hover/focus ring */
+    .modal__card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .modal__card:hover::before { border-color: rgba(119,197,213,0.4); }
+    .modal__card:hover img { transform: scale(1.03); }
+    .modal__card:focus-visible::before { border-color: var(--atmos); box-shadow: 0 0 0 3px rgba(119,197,213,0.2); }
+    .modal__card.selected::before { border-color: var(--atmos) !important; }
+    .modal__card.selected img { transform: scale(1.03); }
+
+    /* Slot badge */
+    .modal__badge {
+      position: absolute;
+      top: 8px; right: 8px;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--atmos);
+      color: #1c1c1c;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 3;
+      opacity: 0;
+      transform: scale(0.6);
+      transition: opacity 0.2s, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      line-height: 1;
+      pointer-events: none;
+    }
+    .modal__card.selected .modal__badge { opacity: 1; transform: scale(1); }
+
+    /* Track name overlay */
+    .modal__card-overlay {
+      position: absolute; inset: 0;
+      border-radius: 10px;
+      background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 55%);
+      display: flex; align-items: flex-end;
+      padding: 10px;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+    }
+    .modal__card:hover .modal__card-overlay,
+    .modal__card.selected .modal__card-overlay { opacity: 1; }
+
+    .modal__card-name { font-size: 11px; font-weight: 600; color: #fff; letter-spacing: 0.01em; }
+
+    /* Locked (em uso) */
+    .modal__card.locked {
+      mix-blend-mode: luminosity;
+      opacity: 0.5;
+      cursor: default;
+      pointer-events: none;
+    }
+    .modal__card.locked::before { display: none; }
+
+    .modal__lock-badge {
+      position: absolute;
+      bottom: 8px; right: 8px;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(4px);
+      border-radius: 6px;
+      padding: 3px 7px;
+      display: flex; align-items: center; gap: 4px;
+      z-index: 3;
+      color: var(--text-secondary);
+      font-size: 10px;
+      font-weight: 500;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    /* Modal footer */
+    .modal__divider { border: none; border-top: 1px solid rgba(255,255,255,0.06); }
+
+    .modal__footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .modal__count {
+      font-size: 13px;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+    .modal__count.has-sel { color: var(--atmos); }
+
+    .modal__footer-btns { display: flex; gap: 8px; }
+
+    .modal__btn {
+      height: 38px;
+      border-radius: 100px;
+      padding: 0 20px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      display: flex; align-items: center; justify-content: center;
+      white-space: nowrap;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .modal__btn:active { transform: scale(0.97); }
+    .modal__btn--cancel {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .modal__btn--cancel:hover { background: rgba(255,255,255,0.06); color: #fff; }
+    .modal__btn--confirm { background: #f2f2f2; color: #000; }
+    .modal__btn--confirm:hover:not(:disabled) { background: #fff; }
+    .modal__btn--confirm:disabled {
+      background: #2e2e2e;
+      color: var(--text-muted);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ── Responsive ───────────────────────────────── */
+    @media (max-width: 640px) {
+      .s1__content { padding: 0 24px 48px; }
+      .s1__title { font-size: 30px; }
+
+      .s2__inner { padding: 32px 16px 48px; gap: 36px; }
+      .s2__tracks { gap: 10px; }
+      .track-card { width: 150px; }
+
+      .sf__inner { padding: 36px 16px 48px; gap: 40px; }
+      .sf__days { gap: 8px; }
+      .day-card--sm { width: 82px; }
+      .day-card--lg { width: 116px; }
+
+      .modal { padding: 16px; gap: 16px; }
+      .modal__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .modal__title { font-size: 18px; }
+      .modal__footer { flex-direction: column; align-items: stretch; }
+      .modal__footer-btns { flex-direction: column; }
+      .modal__btn { width: 100%; height: 44px; }
+      .modal__count { text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ═══ NAV BAR ═══════════════════════════════════ -->
+  <nav class="onb-nav" id="onb-nav" aria-label="Navegação do onboarding">
+    <button class="onb-nav__back" id="nav-back" aria-label="Voltar">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    <img
+      class="onb-nav__logo"
+      src="https://www.figma.com/api/mcp/asset/5b29720c-8402-4bc3-b3b2-ecfe8f287535"
+      alt="IA Ofensiva"
+    >
+
+    <div class="onb-nav__dots" aria-hidden="true">
+      <div class="onb-nav__dot" data-screen="s2"></div>
+      <div class="onb-nav__dot" data-screen="sf"></div>
+    </div>
+  </nav>
+
+  <!-- ═══ TELA 1 — Boas-vindas ═══════════════════════ -->
+  <section class="screen is-active" id="s1" aria-label="Boas-vindas">
+
+    <!-- Hero image (banner) -->
+    <img
+      class="s1__bg"
+      src="https://www.figma.com/api/mcp/asset/99ccd84f-9f25-4bbe-938d-0706752577d4"
+      alt=""
+      aria-hidden="true"
+    >
+    <div class="s1__gradient" aria-hidden="true"></div>
+
+    <div class="s1__content">
+      <img
+        class="s1__logo"
+        src="https://www.figma.com/api/mcp/asset/5b29720c-8402-4bc3-b3b2-ecfe8f287535"
+        alt="IA Ofensiva"
+      >
+      <p class="s1__eyebrow">Bem-vindo</p>
+      <h1 class="s1__title">Pronto para<br>começar?</h1>
+      <p class="s1__subtitle">Escolha suas trilhas e entre de vez na era da inteligência artificial.</p>
+
+      <button class="btn-primary" id="btn-start">
+        Começar
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M3 7H11M11 7L7.5 3.5M11 7L7.5 10.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+  </section>
+
+  <!-- ═══ TELA 2 — Trilhas recomendadas ══════════════ -->
+  <section class="screen" id="s2" aria-label="Trilhas recomendadas">
+    <div class="s2__inner">
+
+      <div class="s2__header">
+        <span class="badge">✦ Personalizar</span>
+        <h2 class="s2__title">Trilhas recomendadas<br>para você</h2>
+        <p class="s2__subtitle">Essas trilhas foram selecionadas com base no seu perfil. Troque qualquer uma pelo botão&nbsp;+.</p>
+      </div>
+
+      <!-- Cards rendered by JS -->
+      <div class="s2__tracks" id="s2-tracks" aria-label="Suas trilhas"></div>
+
+      <div class="s2__footer">
+        <button class="btn-primary" id="btn-advance">
+          Avançar
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M3 7H11M11 7L7.5 3.5M11 7L7.5 10.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <span class="s2__note">Você pode alterar suas trilhas depois</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ TELA FINAL — Primeiro dia ══════════════════ -->
+  <section class="screen" id="sf" aria-label="Primeiro dia de Ofensiva">
+    <div class="sf__inner">
+
+      <div class="sf__header">
+        <span class="badge">🗓 Sua jornada</span>
+        <h2 class="sf__title">Primeiro dia<br>de Ofensiva</h2>
+        <p class="sf__subtitle">Sua programação começa na <strong style="color:var(--text-primary)">segunda-feira</strong>. Prepare-se para uma semana intensa de aprendizado.</p>
+      </div>
+
+      <!-- Day cards -->
+      <div class="sf__days" aria-label="Calendário da semana">
+
+        <div class="day-card day-card--sm" style="--delay: 0.05s">
+          <img
+            class="day-card__icon day-card__icon--sm"
+            src="https://www.figma.com/api/mcp/asset/62dae2f3-4ff8-4577-8054-4e6b37ed9656"
+            alt=""
+          >
+          <span class="day-card__day">Dom</span>
+          <span class="day-card__label">Descanso</span>
+        </div>
+
+        <div class="day-card day-card--lg" style="--delay: 0.18s">
+          <img
+            class="day-card__icon day-card__icon--lg"
+            src="https://www.figma.com/api/mcp/asset/8e38da04-44a0-4b88-9f4b-8448b4b35c6e"
+            alt=""
+          >
+          <span class="day-card__day">Seg</span>
+          <span class="day-card__label">Primeiro dia</span>
+        </div>
+
+        <div class="day-card day-card--sm" style="--delay: 0.3s">
+          <img
+            class="day-card__icon day-card__icon--sm"
+            src="https://www.figma.com/api/mcp/asset/62dae2f3-4ff8-4577-8054-4e6b37ed9656"
+            alt=""
+          >
+          <span class="day-card__day">Ter</span>
+          <span class="day-card__label">Dia 2</span>
+        </div>
+
+      </div>
+
+      <button class="btn-primary" id="btn-finish">
+        Começar Ofensiva
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M3 7H11M11 7L7.5 3.5M11 7L7.5 10.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+    </div>
+  </section>
+
+  <!-- ═══ MODAL — Substituir trilha ═════════════════ -->
+  <div class="modal-overlay" id="modal-overlay" aria-modal="true" role="dialog" aria-labelledby="modal-title">
+    <div class="modal">
+
+      <div class="modal__header">
+        <div class="modal__header-top">
+          <h2 class="modal__title" id="modal-title">Substituir trilha</h2>
+          <button class="modal__close" id="modal-close" aria-label="Fechar">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <p class="modal__subtitle" id="modal-subtitle">
+          Escolha até 3 alternativas para
+          <span class="modal__highlight" id="mslot-0">—</span>,
+          <span class="modal__highlight" id="mslot-1">—</span>
+          e <span class="modal__highlight" id="mslot-2">—</span>.
+        </p>
+      </div>
+
+      <hr class="modal__divider">
+
+      <!-- Cards grid — rendered by JS -->
+      <div class="modal__grid" id="modal-grid" role="group" aria-label="Trilhas disponíveis"></div>
+
+      <div class="modal__footer">
+        <span class="modal__count" id="modal-count" aria-live="polite">Nenhuma selecionada</span>
+        <div class="modal__footer-btns">
+          <button class="modal__btn modal__btn--cancel" id="modal-cancel">Cancelar</button>
+          <button class="modal__btn modal__btn--confirm" id="modal-confirm" disabled>Aplicar</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- .app -->
+
+<script>
+/* ════════════════════════════════════════════════
+   DATA
+════════════════════════════════════════════════ */
+const TRACKS = {
+  protocolo: {
+    id: 'protocolo', name: 'Protocolo 3-2-1',
+    img: 'https://www.figma.com/api/mcp/asset/3d15d459-4a43-4276-97c1-3e2338e1312e',
+    contain: false
+  },
+  ai_first: {
+    id: 'ai_first', name: 'AI_FIRST',
+    img: 'https://www.figma.com/api/mcp/asset/70f7090e-e29c-412e-9195-e20378ad3e36',
+    contain: true
+  },
+  arquivo: {
+    id: 'arquivo', name: 'Arquivo Legado',
+    img: 'https://www.figma.com/api/mcp/asset/79ea8d82-914a-4c68-8928-911046bbbab5',
+    contain: false
+  },
+  sandbox: {
+    id: 'sandbox', name: 'Sandbox',
+    img: 'https://www.figma.com/api/mcp/asset/33961f64-9521-4e00-8ba3-aaaf1219a30e',
+    contain: false
+  },
+  deepzoom: {
+    id: 'deepzoom', name: 'DeepZoom',
+    img: 'https://www.figma.com/api/mcp/asset/4cc80aec-8f71-4552-9667-79f61c8f889e',
+    contain: false
+  },
+  nexgen: {
+    id: 'nexgen', name: 'NEXGEN',
+    img: 'https://www.figma.com/api/mcp/asset/6aab9e86-e065-42b7-9187-7b52f7645cf5',
+    contain: false
+  },
+  gestalt: {
+    id: 'gestalt', name: 'GESTALT',
+    img: 'https://www.figma.com/api/mcp/asset/70fc41b1-1255-46e0-bd9f-c243d9f08ae3',
+    contain: false
+  },
+  ideia: {
+    id: 'ideia', name: 'Idéa',
+    img: 'https://www.figma.com/api/mcp/asset/3ea7a40c-629a-4622-b3e3-7d0df5becc9b',
+    contain: false
+  },
+};
+
+const ALL_IDS = Object.keys(TRACKS);
+
+/* ════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════ */
+let activeTracks = ['protocolo', 'ai_first', 'arquivo'];   // 3 active track IDs
+let modalSels    = [null, null, null];                     // modal selections (IDs or null)
+let currentScreen = 's1';
+const history    = [];
+let transitioning = false;
+
+/* ════════════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════════════ */
+const EASE = '0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+
+function navigate(toId, direction = 'fwd') {
+  if (transitioning || toId === currentScreen) return;
+  transitioning = true;
+
+  const from = document.getElementById(currentScreen);
+  const to   = document.getElementById(toId);
+  const dx   = direction === 'fwd' ? 28 : -28;
+
+  // 1. Animate FROM out
+  Object.assign(from.style, {
+    transition: `opacity ${EASE}, transform ${EASE}`,
+    opacity:    '0',
+    transform:  `translateX(${-dx}px)`,
+    pointerEvents: 'none',
+  });
+
+  // 2. Position TO instantly (no animation yet)
+  Object.assign(to.style, {
+    transition:    'none',
+    opacity:       '0',
+    transform:     `translateX(${dx}px)`,
+    pointerEvents: 'none',
+  });
+
+  // 3. Force reflow so instant positioning is applied
+  to.getBoundingClientRect();
+
+  // 4. Animate TO in
+  Object.assign(to.style, {
+    transition:    `opacity ${EASE}, transform ${EASE}`,
+    opacity:       '1',
+    transform:     'translateX(0)',
+    pointerEvents: 'all',
+  });
+
+  // 5. Cleanup after animation
+  setTimeout(() => {
+    from.classList.remove('is-active');
+    to.classList.add('is-active');
+    // Clear inline styles so CSS takes over
+    [from, to].forEach(el => {
+      el.style.transition  = '';
+      el.style.opacity     = '';
+      el.style.transform   = '';
+      el.style.pointerEvents = '';
+    });
+    transitioning = false;
+  }, 380);
+
+  history.push(currentScreen);
+  currentScreen = toId;
+  updateNav();
+}
+
+function goBack() {
+  if (history.length === 0) return;
+  const prev = history.pop();
+  // Temporarily remove last so navigate() can push correctly
+  history.pop(); // remove the one navigate() will push back
+  navigate(prev, 'bwd');
+  history.push(prev); // keep it for further back presses
+}
+
+/* Wait — simpler history management: */
+function navTo(toId) {
+  navigate(toId, 'fwd');
+}
+
+function navBack() {
+  if (history.length === 0) return;
+  const prev = history[history.length - 1];
+  history.pop(); // remove prev
+  // Also need to remove the one that navigate will push (currentScreen)
+  // navigate() will push currentScreen to history again, which is wrong for going back.
+  // Use a flag to skip push in navigate when going back.
+  navigateBack(prev);
+}
+
+function navigateBack(toId) {
+  if (transitioning || toId === currentScreen) return;
+  transitioning = true;
+
+  const from = document.getElementById(currentScreen);
+  const to   = document.getElementById(toId);
+
+  // Slide FROM to right, TO from left
+  Object.assign(from.style, {
+    transition:    `opacity ${EASE}, transform ${EASE}`,
+    opacity:       '0',
+    transform:     'translateX(28px)',
+    pointerEvents: 'none',
+  });
+
+  Object.assign(to.style, {
+    transition:    'none',
+    opacity:       '0',
+    transform:     'translateX(-28px)',
+    pointerEvents: 'none',
+  });
+
+  to.getBoundingClientRect();
+
+  Object.assign(to.style, {
+    transition:    `opacity ${EASE}, transform ${EASE}`,
+    opacity:       '1',
+    transform:     'translateX(0)',
+    pointerEvents: 'all',
+  });
+
+  setTimeout(() => {
+    from.classList.remove('is-active');
+    to.classList.add('is-active');
+    [from, to].forEach(el => {
+      el.style.transition  = '';
+      el.style.opacity     = '';
+      el.style.transform   = '';
+      el.style.pointerEvents = '';
+    });
+    transitioning = false;
+  }, 380);
+
+  currentScreen = toId;
+  updateNav();
+}
+
+/* ════════════════════════════════════════════════
+   NAV BAR
+════════════════════════════════════════════════ */
+function updateNav() {
+  const nav  = document.getElementById('onb-nav');
+  const dots = document.querySelectorAll('.onb-nav__dot');
+
+  if (currentScreen === 's1') {
+    nav.classList.remove('is-visible');
+  } else {
+    nav.classList.add('is-visible');
+  }
+
+  dots.forEach(d => d.classList.toggle('is-active', d.dataset.screen === currentScreen));
+}
+
+/* ════════════════════════════════════════════════
+   TELA 2 — RENDER TRACK CARDS
+════════════════════════════════════════════════ */
+function renderS2() {
+  const container = document.getElementById('s2-tracks');
+  container.innerHTML = '';
+
+  activeTracks.forEach((tid) => {
+    const t = TRACKS[tid];
+    const card = document.createElement('div');
+    card.className = 'track-card';
+    card.dataset.id = tid;
+
+    card.innerHTML = `
+      <div class="track-card__visual">
+        <img
+          class="track-card__img"
+          src="${t.img}"
+          alt="${t.name}"
+          ${t.contain ? 'style="object-fit:contain"' : ''}
+        >
+        <div class="track-card__overlay" aria-hidden="true">
+          <span class="track-card__overlay-name">${t.name}</span>
+        </div>
+        <button
+          class="track-card__swap"
+          aria-label="Substituir trilha ${t.name}"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 2V12M2 7H12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <span class="track-card__name">${t.name}</span>
+    `;
+
+    // Swap button opens modal
+    card.querySelector('.track-card__swap').addEventListener('click', () => openModal());
+    container.appendChild(card);
+  });
+}
+
+/* ════════════════════════════════════════════════
+   MODAL — OPEN / CLOSE
+════════════════════════════════════════════════ */
+function openModal() {
+  modalSels = [null, null, null];
+  renderModalSubtitle();
+  renderModalGrid();
+  updateModalFooter();
+  document.getElementById('modal-overlay').classList.add('is-open');
+  document.getElementById('modal-close').focus();
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('is-open');
+}
+
+/* ── Modal subtitle ──────────────────────────── */
+function renderModalSubtitle() {
+  activeTracks.forEach((tid, i) => {
+    const span = document.getElementById(`mslot-${i}`);
+    const sel  = modalSels[i];
+    span.textContent = sel ? TRACKS[sel].name : TRACKS[tid].name;
+    span.classList.toggle('is-filled', !!sel);
+  });
+}
+
+/* ── Modal grid ──────────────────────────────── */
+const LOCK_SVG = `
+  <svg width="9" height="10" viewBox="0 0 9 10" fill="none">
+    <rect x="1" y="4" width="7" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+    <path d="M2.5 4V3a2 2 0 1 1 4 0v1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  </svg>`;
+
+function renderModalGrid() {
+  const grid = document.getElementById('modal-grid');
+  grid.innerHTML = '';
+
+  const lockedSet     = new Set(activeTracks);
+  const selectableIds = ALL_IDS.filter(id => !lockedSet.has(id));
+  const lockedIds     = [...activeTracks];
+
+  // Selectables first, then locked
+  [...selectableIds, ...lockedIds].forEach(tid => {
+    const t        = TRACKS[tid];
+    const isLocked = lockedSet.has(tid);
+    const slotIdx  = modalSels.indexOf(tid);
+    const isSel    = slotIdx !== -1;
+
+    const card = document.createElement('div');
+    card.className = 'modal__card' +
+      (isLocked ? ' locked' : '') +
+      (isSel    ? ' selected' : '') +
+      (t.contain ? ' contain' : '');
+
+    if (!isLocked) {
+      card.setAttribute('role', 'checkbox');
+      card.setAttribute('aria-checked', isSel ? 'true' : 'false');
+      card.setAttribute('tabindex', '0');
+      card.dataset.id = tid;
+    }
+    card.setAttribute('aria-label', `${t.name}${isLocked ? ' — em uso' : ''}`);
+
+    card.innerHTML = `
+      <img src="${t.img}" alt="">
+      <div class="modal__card-overlay" aria-hidden="true">
+        <span class="modal__card-name">${t.name}</span>
+      </div>
+      ${!isLocked ? `<div class="modal__badge" aria-hidden="true">${isSel ? slotIdx + 1 : ''}</div>` : ''}
+      ${isLocked  ? `<div class="modal__lock-badge" aria-hidden="true">${LOCK_SVG} Em uso</div>` : ''}
+    `;
+
+    if (!isLocked) {
+      card.addEventListener('click', () => toggleModalCard(tid));
+      card.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggleModalCard(tid);
+        }
+      });
+    }
+
+    grid.appendChild(card);
+  });
+}
+
+/* ── Toggle selection ────────────────────────── */
+function toggleModalCard(tid) {
+  const idx = modalSels.indexOf(tid);
+
+  if (idx !== -1) {
+    modalSels[idx] = null;          // deselect
+  } else {
+    const empty = modalSels.indexOf(null);
+    if (empty === -1) return;        // all 3 slots full
+    modalSels[empty] = tid;
+  }
+
+  renderModalSubtitle();
+  renderModalGrid();
+  updateModalFooter();
+}
+
+/* ── Footer counter ──────────────────────────── */
+function updateModalFooter() {
+  const count   = modalSels.filter(Boolean).length;
+  const el      = document.getElementById('modal-count');
+  const confirm = document.getElementById('modal-confirm');
+
+  if (count === 0) {
+    el.textContent = 'Nenhuma selecionada';
+    el.classList.remove('has-sel');
+  } else {
+    el.textContent = `${count} de 3 trilha${count > 1 ? 's' : ''} selecionada${count > 1 ? 's' : ''}`;
+    el.classList.add('has-sel');
+  }
+  confirm.disabled = count === 0;
+}
+
+/* ── Confirm ─────────────────────────────────── */
+function confirmModal() {
+  // Apply selections: each non-null slot replaces that position in activeTracks
+  modalSels.forEach((tid, i) => {
+    if (tid !== null) activeTracks[i] = tid;
+  });
+  renderS2();
+  closeModal();
+}
+
+/* ════════════════════════════════════════════════
+   TELA FINAL — day-card entrance animation
+════════════════════════════════════════════════ */
+function animateDayCards() {
+  const cards = document.querySelectorAll('.day-card');
+  cards.forEach((card, i) => {
+    setTimeout(() => card.classList.add('is-visible'), 100 + i * 130);
+  });
+}
+
+/* ════════════════════════════════════════════════
+   EVENT LISTENERS
+════════════════════════════════════════════════ */
+// Screen 1 → 2
+document.getElementById('btn-start').addEventListener('click', () => {
+  navTo('s2');
+});
+
+// Screen 2 → Final
+document.getElementById('btn-advance').addEventListener('click', () => {
+  navTo('sf');
+  setTimeout(animateDayCards, 360);
+});
+
+// Screen Final — CTA
+document.getElementById('btn-finish').addEventListener('click', () => {
+  const btn = document.getElementById('btn-finish');
+  btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8L7 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Tudo pronto!`;
+  btn.disabled = true;
+  btn.style.background = 'var(--atmos)';
+  btn.style.color = '#000';
+});
+
+// Nav back
+document.getElementById('nav-back').addEventListener('click', () => {
+  if (currentScreen === 's2') navigateBack('s1');
+  else if (currentScreen === 'sf') navigateBack('s2');
+});
+
+// Modal controls
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('modal-cancel').addEventListener('click', closeModal);
+document.getElementById('modal-confirm').addEventListener('click', confirmModal);
+
+// Close on backdrop click
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// Close on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+/* ════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════ */
+renderS2();
+updateNav();
+</script>
+
+</body>
+</html>

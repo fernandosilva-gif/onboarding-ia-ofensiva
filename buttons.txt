@@ -1,0 +1,85 @@
+(async function convertToComponentSet() {
+    const page = figma.currentPage;
+
+    // Encontra todos os frames do botão
+    const buttonFrames = page.findAll(n =>
+      n.type === 'FRAME' && n.name.startsWith('Button
+  /')
+    );
+
+    if (buttonFrames.length === 0) {
+      figma.notify('❌ Nenhum frame de botão
+  encontrado!');
+      return;
+    }
+
+    const components = [];
+
+    for (const frame of buttonFrames) {
+      // "Button / White / Default" → Theme=White,
+  State=Default
+      const parts = frame.name.split(' / ');
+      const theme = parts[1] || 'Unknown';
+      const state = parts[2] || 'Unknown';
+
+      const component = figma.createComponent();
+      component.name = `Theme=${theme},
+  State=${state}`;
+      component.x = frame.x;
+      component.y = frame.y;
+      component.resize(frame.width, frame.height);
+
+      // Copia propriedades visuais
+      component.fills   =
+  JSON.parse(JSON.stringify(frame.fills));
+      component.strokes =
+  JSON.parse(JSON.stringify(frame.strokes));
+      component.strokeWeight = frame.strokeWeight;
+      if (frame.cornerRadius !== undefined)
+        component.cornerRadius = frame.cornerRadius;
+
+      // Copia Auto Layout
+      if (frame.layoutMode !== 'NONE') {
+        component.layoutMode              =
+  frame.layoutMode;
+        component.primaryAxisAlignItems   =
+  frame.primaryAxisAlignItems;
+        component.counterAxisAlignItems   =
+  frame.counterAxisAlignItems;
+        component.paddingTop              =
+  frame.paddingTop;
+        component.paddingBottom           =
+  frame.paddingBottom;
+        component.paddingLeft             =
+  frame.paddingLeft;
+        component.paddingRight            =
+  frame.paddingRight;
+        component.itemSpacing             =
+  frame.itemSpacing;
+        component.layoutSizingHorizontal  =
+  frame.layoutSizingHorizontal;
+        component.layoutSizingVertical    =
+  frame.layoutSizingVertical;
+      }
+
+      // Move filhos para o componente
+      for (const child of [...frame.children]) {
+        component.appendChild(child);
+      }
+
+      page.appendChild(component);
+      frame.remove();
+      components.push(component);
+    }
+
+    // Agrupa como Component Set com variantes
+    const set = figma.combineAsVariants(components,
+  page);
+    set.name = 'Primary Button';
+
+    figma.currentPage.selection = [set];
+    figma.viewport.scrollAndZoomIntoView([set]);
+
+    figma.notify(`✅ Component Set criado com
+  ${components.length} variantes!`);
+  })();
