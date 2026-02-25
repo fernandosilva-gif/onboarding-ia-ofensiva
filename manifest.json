@@ -1,0 +1,11 @@
+{
+    "name": "Figma Button System Generator",
+    "id": "button-system-generator",
+    "api": "1.0.0",
+    "main": "code.ts",
+    "capabilities": [],
+    "enableProposedApi": false,
+    "editorType": [
+        "figma"
+    ]
+}

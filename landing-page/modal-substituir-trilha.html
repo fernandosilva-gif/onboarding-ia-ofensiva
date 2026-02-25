@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modal — Substituir Trilha</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #111;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    /* ── Modal ────────────────────────────────── */
+    .modal {
+      background: #202020;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      width: 100%;
+      max-width: 872px;
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6);
+    }
+
+    /* ── Header ───────────────────────────────── */
+    .modal__header {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .modal__header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .modal__title {
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.2;
+      color: #ffffff;
+      letter-spacing: -0.01em;
+    }
+
+    .modal__close {
+      width: 32px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s;
+      color: #a4a4a4;
+    }
+
+    .modal__close:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+
+    .modal__close svg {
+      display: block;
+    }
+
+    .modal__subtitle {
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 1.5;
+      color: #a4a4a4;
+    }
+
+    .modal__subtitle-highlight {
+      color: #77c5d5;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .modal__subtitle-highlight.is-filled {
+      color: #77c5d5;
+    }
+
+    /* ── Section label ────────────────────────── */
+    .modal__section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #606060;
+      margin-bottom: -16px;
+    }
+
+    /* ── Cards Grid ───────────────────────────── */
+    .modal__grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    /* ── Card ─────────────────────────────────── */
+    .modal__card {
+      aspect-ratio: 204 / 307;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #2a2a2a;
+      position: relative;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .modal__card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      border-radius: 10px;
+      transition: transform 0.25s ease;
+    }
+
+    .modal__card--contain img {
+      object-fit: contain;
+    }
+
+    /* Hover ring */
+    .modal__card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .modal__card:hover::before {
+      border-color: rgba(119, 197, 213, 0.45);
+      box-shadow: 0 0 0 1px rgba(119, 197, 213, 0.15) inset;
+    }
+
+    .modal__card:hover img {
+      transform: scale(1.03);
+    }
+
+    /* Focus ring (keyboard) */
+    .modal__card:focus-visible::before {
+      border-color: #77c5d5;
+      box-shadow: 0 0 0 3px rgba(119, 197, 213, 0.25);
+    }
+
+    /* Selected state */
+    .modal__card--selected::before {
+      border-color: #77c5d5 !important;
+      box-shadow: 0 0 0 1px rgba(119, 197, 213, 0.2) inset;
+    }
+
+    .modal__card--selected img {
+      transform: scale(1.03);
+    }
+
+    /* Slot number badge */
+    .modal__card__check {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 22px;
+      height: 22px;
+      background: #77c5d5;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3;
+      opacity: 0;
+      transform: scale(0.6);
+      transition: opacity 0.2s, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      font-size: 11px;
+      font-weight: 700;
+      color: #202020;
+      line-height: 1;
+    }
+
+    .modal__card--selected .modal__card__check {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Locked / faded cards */
+    .modal__card--locked {
+      mix-blend-mode: luminosity;
+      opacity: 0.55;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .modal__card--locked::before {
+      display: none;
+    }
+
+    /* Lock badge on locked cards */
+    .modal__card__lock {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(4px);
+      border-radius: 6px;
+      padding: 3px 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      z-index: 3;
+      color: #a4a4a4;
+      font-size: 10px;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    /* Hover overlay com nome da trilha */
+    .modal__card__overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: 10px;
+      background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%);
+      display: flex;
+      align-items: flex-end;
+      padding: 10px;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+    }
+
+    .modal__card:hover .modal__card__overlay,
+    .modal__card--selected .modal__card__overlay {
+      opacity: 1;
+    }
+
+    .modal__card__name {
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.3;
+      letter-spacing: 0.01em;
+    }
+
+    /* ── Divider ──────────────────────────────── */
+    .modal__divider {
+      border: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      margin: 0;
+    }
+
+    /* ── Footer ───────────────────────────────── */
+    .modal__footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .modal__selection-info {
+      font-size: 13px;
+      color: #606060;
+      transition: color 0.2s;
+    }
+
+    .modal__selection-info.has-selection {
+      color: #77c5d5;
+    }
+
+    .modal__footer-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .modal__btn {
+      height: 38px;
+      border-radius: 100px;
+      padding: 0 20px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      transition: background 0.15s, opacity 0.15s, transform 0.1s;
+    }
+
+    .modal__btn:active {
+      transform: scale(0.97);
+    }
+
+    .modal__btn--cancel {
+      background: transparent;
+      color: #a4a4a4;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .modal__btn--cancel:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .modal__btn--confirm {
+      background: #f2f2f2;
+      color: #000;
+    }
+
+    .modal__btn--confirm:hover:not(:disabled) {
+      background: #fff;
+    }
+
+    .modal__btn--confirm:disabled {
+      background: #3a3a3a;
+      color: #606060;
+      cursor: not-allowed;
+    }
+
+    .modal__btn--confirm:disabled:active {
+      transform: none;
+    }
+
+    /* ── Responsive ───────────────────────────── */
+    @media (max-width: 600px) {
+      .modal {
+        padding: 16px;
+        gap: 20px;
+      }
+
+      .modal__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .modal__title {
+        font-size: 18px;
+      }
+
+      .modal__footer {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .modal__footer-actions {
+        flex-direction: column;
+      }
+
+      .modal__btn {
+        width: 100%;
+        height: 44px;
+      }
+
+      .modal__selection-info {
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+
+    <!-- Header -->
+    <div class="modal__header">
+      <div class="modal__header-top">
+        <h2 class="modal__title" id="modal-title">Substituir trilha</h2>
+        <button class="modal__close" aria-label="Fechar modal">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <p class="modal__subtitle">
+        Escolha uma alternativa para
+        <span class="modal__subtitle-highlight" id="slot-1">Protocolo 3-2-1</span>,
+        <span class="modal__subtitle-highlight" id="slot-2">História das IAs</span>
+        e <span class="modal__subtitle-highlight" id="slot-3">Arquivo Legado</span>.
+      </p>
+    </div>
+
+    <hr class="modal__divider">
+
+    <!-- Grid de cards -->
+    <div class="modal__grid" role="group" aria-label="Trilhas disponíveis">
+
+      <!-- Linha 1 — disponíveis -->
+      <div class="modal__card" role="checkbox" aria-checked="false" tabindex="0" data-name="Sandbox" aria-label="Sandbox — Princípios Básicos do Design">
+        <img src="https://www.figma.com/api/mcp/asset/33961f64-9521-4e00-8ba3-aaaf1219a30e" alt="">
+        <div class="modal__card__overlay">
+          <span class="modal__card__name">Sandbox</span>
+        </div>
+        <div class="modal__card__check" aria-hidden="true"></div>
+      </div>
+
+      <div class="modal__card" role="checkbox" aria-checked="false" tabindex="0" data-name="DeepZoom" aria-label="DeepZoom">
+        <img src="https://www.figma.com/api/mcp/asset/4cc80aec-8f71-4552-9667-79f61c8f889e" alt="">
+        <div class="modal__card__overlay">
+          <span class="modal__card__name">DeepZoom</span>
+        </div>
+        <div class="modal__card__check" aria-hidden="true"></div>
+      </div>
+
+      <div class="modal__card" role="checkbox" aria-checked="false" tabindex="0" data-name="NEXGEN" aria-label="NEXGEN — Habilidades Nexialistas">
+        <img src="https://www.figma.com/api/mcp/asset/6aab9e86-e065-42b7-9187-7b52f7645cf5" alt="">
+        <div class="modal__card__overlay">
+          <span class="modal__card__name">NEXGEN</span>
+        </div>
+        <div class="modal__card__check" aria-hidden="true"></div>
+      </div>
+
+      <div class="modal__card" role="checkbox" aria-checked="false" tabindex="0" data-name="GESTALT" aria-label="GESTALT — Fundamentos das Formas">
+        <img src="https://www.figma.com/api/mcp/asset/70fc41b1-1255-46e0-bd9f-c243d9f08ae3" alt="">
+        <div class="modal__card__overlay">
+          <span class="modal__card__name">GESTALT</span>
+        </div>
+        <div class="modal__card__check" aria-hidden="true"></div>
+      </div>
+
+      <!-- Linha 2 — col 1 normal -->
+      <div class="modal__card" role="checkbox" aria-checked="false" tabindex="0" data-name="Idéa" aria-label="Idéa">
+        <img src="https://www.figma.com/api/mcp/asset/3ea7a40c-629a-4622-b3e3-7d0df5becc9b" alt="">
+        <div class="modal__card__overlay">
+          <span class="modal__card__name">Idéa</span>
+        </div>
+        <div class="modal__card__check" aria-hidden="true"></div>
+      </div>
+
+      <!-- Linha 2, col 2-4 — trilhas atuais (bloqueadas) -->
+      <div class="modal__card modal__card--locked" aria-label="Protocolo 3-2-1 — em uso" aria-disabled="true">
+        <img src="https://www.figma.com/api/mcp/asset/3d15d459-4a43-4276-97c1-3e2338e1312e" alt="">
+        <div class="modal__card__lock" aria-hidden="true">
+          <svg width="9" height="10" viewBox="0 0 9 10" fill="none">
+            <rect x="1" y="4" width="7" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M2.5 4V3a2 2 0 1 1 4 0v1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          Em uso
+        </div>
+      </div>
+
+      <div class="modal__card modal__card--locked modal__card--contain" aria-label="AI_FIRST — História das IAs — em uso" aria-disabled="true">
+        <img src="https://www.figma.com/api/mcp/asset/70f7090e-e29c-412e-9195-e20378ad3e36" alt="">
+        <div class="modal__card__lock" aria-hidden="true">
+          <svg width="9" height="10" viewBox="0 0 9 10" fill="none">
+            <rect x="1" y="4" width="7" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M2.5 4V3a2 2 0 1 1 4 0v1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          Em uso
+        </div>
+      </div>
+
+      <div class="modal__card modal__card--locked" aria-label="Arquivo Legado — em uso" aria-disabled="true">
+        <img src="https://www.figma.com/api/mcp/asset/79ea8d82-914a-4c68-8928-911046bbbab5" alt="">
+        <div class="modal__card__lock" aria-hidden="true">
+          <svg width="9" height="10" viewBox="0 0 9 10" fill="none">
+            <rect x="1" y="4" width="7" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M2.5 4V3a2 2 0 1 1 4 0v1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          Em uso
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="modal__footer">
+      <span class="modal__selection-info" id="selection-info" aria-live="polite">
+        Nenhuma trilha selecionada
+      </span>
+      <div class="modal__footer-actions">
+        <button class="modal__btn modal__btn--cancel" type="button">Cancelar</button>
+        <button class="modal__btn modal__btn--confirm" type="button" id="btn-confirm" disabled aria-describedby="selection-info">
+          Avançar
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const cards = document.querySelectorAll('.modal__card:not(.modal__card--locked)');
+    const btnConfirm = document.getElementById('btn-confirm');
+    const selectionInfo = document.getElementById('selection-info');
+
+    // Nomes originais dos 3 slots no subtítulo
+    const SLOT_ORIGINALS = ['Protocolo 3-2-1', 'História das IAs', 'Arquivo Legado'];
+    // selections[i] = card element que ocupa o slot i, ou null
+    const selections = [null, null, null];
+
+    function getSlotEl(i) {
+      return document.getElementById(`slot-${i + 1}`);
+    }
+
+    function render() {
+      // Atualiza os spans do subtítulo
+      selections.forEach((card, i) => {
+        const span = getSlotEl(i);
+        if (card) {
+          span.textContent = card.dataset.name;
+          span.classList.add('is-filled');
+        } else {
+          span.textContent = SLOT_ORIGINALS[i];
+          span.classList.remove('is-filled');
+        }
+      });
+
+      // Atualiza badges dos cards e aria
+      cards.forEach(card => {
+        const slotIndex = selections.indexOf(card);
+        const badge = card.querySelector('.modal__card__check');
+        if (slotIndex !== -1) {
+          card.classList.add('modal__card--selected');
+          card.setAttribute('aria-checked', 'true');
+          badge.textContent = slotIndex + 1;
+        } else {
+          card.classList.remove('modal__card--selected');
+          card.setAttribute('aria-checked', 'false');
+          badge.textContent = '';
+        }
+      });
+
+      // Atualiza footer
+      const count = selections.filter(Boolean).length;
+      if (count === 0) {
+        selectionInfo.textContent = 'Nenhuma trilha selecionada';
+        selectionInfo.classList.remove('has-selection');
+      } else {
+        selectionInfo.textContent = `${count} de 3 trilha${count > 1 ? 's' : ''} selecionada${count > 1 ? 's' : ''}`;
+        selectionInfo.classList.add('has-selection');
+      }
+      btnConfirm.disabled = count === 0;
+    }
+
+    function toggleCard(card) {
+      const slotIndex = selections.indexOf(card);
+
+      if (slotIndex !== -1) {
+        // Já está selecionado → deseleciona
+        selections[slotIndex] = null;
+      } else {
+        // Encontra o primeiro slot vazio
+        const emptySlot = selections.indexOf(null);
+        if (emptySlot === -1) return; // todos os 3 slots preenchidos
+        selections[emptySlot] = card;
+      }
+
+      render();
+    }
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => toggleCard(card));
+      card.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggleCard(card);
+        }
+      });
+    });
+
+    document.querySelector('.modal__close').addEventListener('click', () => {
+      document.querySelector('.modal').style.opacity = '0';
+      setTimeout(() => document.querySelector('.modal').style.display = 'none', 200);
+    });
+
+    document.querySelector('.modal__btn--cancel').addEventListener('click', () => {
+      document.querySelector('.modal__close').click();
+    });
+  </script>
+
+</body>
+</html>

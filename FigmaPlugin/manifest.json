@@ -1,0 +1,9 @@
+{
+  "name": "Button to Component Set",
+  "id": "button-converter-local",
+  "api": "1.0.0",
+  "main": "code.js",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "editorType": ["figma"]
+}

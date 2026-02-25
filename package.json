@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "youtube-transcript": "^1.2.1",
+    "youtubei.js": "^16.0.1"
+  },
+  "devDependencies": {
+    "serve": "^14.2.5"
+  }
+}
