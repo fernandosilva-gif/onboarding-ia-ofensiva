@@ -35,7 +35,10 @@
       "Bash(git init:*)",
       "Bash(git add:*)",
       "Bash(gh auth:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(start \"\" \"https://github.com/fernandosilva-gif/onboarding-ia-ofensiva/compare/main...feat/onboarding-mvp-v2?quick_pull=1&title=feat%3A+Onboarding+MVP+%E2%80%94+4+telas+%2B+modal+substituir+trilha\")",
+      "Bash(git diff:*)"
     ]
   }
 }
